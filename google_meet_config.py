@@ -184,11 +184,23 @@ def handle_oauth_authentication():
     st.write(f"DEBUG: State généré (avant bouton) : {state}")
 
     # Vérifier si on a reçu un code d'autorisation
-    query_params = st.query_params
+   try:
+        # Essayer d'abord st.query_params (Streamlit 1.28+)
+        if hasattr(st, 'query_params'):
+            query_params = st.query_params
+            auth_code = query_params.get('code', None)
+            state_received = query_params.get('state', None)
+        else:
+            # Fallback pour les versions plus anciennes
+            query_params = st.experimental_get_query_params()
+            auth_code = query_params.get('code', [None])[0] if 'code' in query_params else None
+            state_received = query_params.get('state', [None])[0] if 'state' in query_params else None
+    except Exception as e:
+        st.warning(f"⚠️ Impossible de récupérer les paramètres d'URL: {e}")
+        auth_code = None
+        state_received = None
     st.write(f"DEBUG: URL complète de retour : {query_params}")
-    auth_code = query_params.get('code', None)
-    state_received = query_params.get('state', None)
-
+   
     st.write(f"State attendu (session) : {state}")
     st.write(f"State reçu (URL) : {state_received}")
 
@@ -198,7 +210,15 @@ def handle_oauth_authentication():
             credentials = exchange_code_for_token(auth_code)
             if credentials:
                 st.success("✅ Authentification réussie !")
-                st.query_params.clear()
+                # Nettoyer les paramètres d'URL
+                try:
+                    if hasattr(st, 'query_params'):
+                        st.query_params.clear()
+                    else:
+                        # Pour les versions plus anciennes, on ne peut pas nettoyer facilement
+                        pass
+                except:
+                    pass
                 if os.path.exists(STATE_FILE):
                     os.remove(STATE_FILE)
                 return credentials
