@@ -163,7 +163,7 @@ L'équipe RH"""
     
     return message
 
-def generate_interview_message(email, contract_type, interview_date, interview_time, visio_link, interviewer_name="Marie Dupont"):
+def generate_interview_message(email, contract_type, interview_date, interview_time, visio_link, interviewer_name="Jean Jean"):
     """Génère un message pour un entretien avec lien Visio"""
     if contract_type == "À compléter":
         contract_phrase = "un poste"
